@@ -150,7 +150,7 @@ class GenBot < Ebooks::Bot
           # content class can have commands of its own too 
           s = @content.command(dm.text)
           if s != nil
-              bot.reply dm, s
+              @bot.reply dm, s
           end
       else
           @bot.delay DELAY do
@@ -252,8 +252,8 @@ class GenBot < Ebooks::Bot
       
       s = @content.special_reply(tweet, meta)
       if s != nil
-          bot.delay DELAY do
-              bot.reply tweet, s
+          @bot.delay DELAY do
+              @bot.reply tweet, s
           end
           return
       end
