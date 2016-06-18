@@ -382,14 +382,22 @@ class GenBot < Ebooks::Bot
               if last_tweet_id != 0
                   sleep rand TWEET_CHAIN_DELAY
               end
-              text, img, sensitive = t
+              if t[0] == :retweet
+                  retweet_tweet_id = t[1]
+              else
+                  text, img, sensitive = t
+              end
               tries = 0
               while (tries == 0 || (last_tweet == nil)) && (tries < TWEET_ERROR_MAX_TRIES)
                   if tries != 0
                       sleep TWEET_ERROR_DELAY
                   end
                   begin
-                      if img != nil
+                      if t[0] == :retweet
+                          the_tweet = twitter.status retweet_tweet_id
+                          @bot.retweet(the_tweet)
+                          last_tweet = nil
+                      elsif img != nil
                           last_tweet = tweet_with_media(text, img, sensitive, last_tweet_id)
                       elsif last_tweet_id == 0
                           last_tweet = @bot.tweet(text)
