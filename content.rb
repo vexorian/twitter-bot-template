@@ -98,6 +98,12 @@ class Content
         # 
         # Return nil if the content is not ready yet, the code will call 
         # make_tweets at another time.
+        # 
+        # You can also make it retweet tweets:
+        #
+        # return [
+        #     [ :retweet, tweet_id ],
+        # ]
         #
     end
     
