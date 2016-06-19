@@ -298,10 +298,14 @@ class GenBot < Ebooks::Bot
       # (barring special cases)
       if !@have_talked[tweet.user.screen_name]
           if do_fave
-              favorite(tweet)
+              @bot.delay FAV_DELAY do              
+                  favorite(tweet)
+              end
           end
           if do_rt
-              retweet(tweet)
+              @bot.delay FAV_DELAY do
+                  retweet(tweet)
+              end
           end
           if do_reply
               reply_queue(tweet, meta)
@@ -396,7 +400,7 @@ class GenBot < Ebooks::Bot
                       if t[0] == :retweet
                           the_tweet = twitter.status retweet_tweet_id
                           @bot.retweet(the_tweet)
-                          last_tweet = nil
+                          last_tweet = the_tweet
                       elsif img != nil
                           last_tweet = tweet_with_media(text, img, sensitive, last_tweet_id)
                       elsif last_tweet_id == 0
@@ -522,16 +526,20 @@ class GenBot < Ebooks::Bot
 
   def favorite(tweet)
     @bot.log "Favoriting @#{tweet.user.screen_name}: #{tweet.text}"
-    @bot.delay FAV_DELAY do
-      @bot.twitter.favorite(tweet[:id])
-    end
+    @bot.twitter.favorite(tweet.id)
   end
 
   def retweet(tweet)
     @bot.log "Retweeting @#{tweet.user.screen_name}: #{tweet.text}"
-    @bot.delay FAV_DELAY do
-      @bot.twitter.retweet(tweet[:id])
+    if tweet.retweeted?
+        @bot.log "First we need to unretweet it."
+        # unfortunately the unretweet method was not yet added to twitter gem,
+        # so, for now we will mess with the api directly :/
+        @bot.twitter.send(:perform_post, "/1.1/statuses/unretweet/#{tweet.id}.json")
+        @bot.log "I hope it was unretweeted."
+        #@bot.twitter.unretweet(tweet.id)
     end
+    @bot.twitter.retweet(tweet.id)
   end
   
   def unfollow(user)
